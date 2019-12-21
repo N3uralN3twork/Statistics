@@ -3,8 +3,8 @@ Source 1: https://stackoverflow.com/questions/16476924/how-to-iterate-over-rows-
 Source 2: https://medium.com/better-programming/two-replacements-for-switch-statements-in-python-85e09638e451
 Source 3: https://docs.scipy.org/doc/numpy/reference/generated/numpy.nan_to_num.html
 Source 4: https://docs.scipy.org/doc/numpy/reference/generated/numpy.nanmean.html
-Source 5: https://stackoverflow.com/questions/44033422/how-to-recode-integers-to-other-values-in-python"""
-
+Source 5: https://stackoverflow.com/questions/44033422/how-to-recode-integers-to-other-values-in-python
+Source 6: https://stackoverflow.com/questions/11904981/local-variable-referenced-before-assignment"""
 #Set working directory where contents will be stored:
 import os
 os.chdir(path = "C:/Users/MatthiasQ.MATTQ/Desktop/R Projects")
@@ -37,9 +37,9 @@ data = data.astype({"Q1": "float64"}) #For later problems
 df = data.copy() #Don't just type "df = data" 'cause you'll have linked changes
 df.dtypes
 
-"Steps: 1. Change Decimals to NA"
+"""Steps: 1. Change Decimals to NA"
 "       2. Change Negatives to NA /
-"       3. Change out-of-range values to NA"
+"       3. Change out-of-range values to NA"""
 
 #1. Change entries with decimals to NA:
 
@@ -73,6 +73,7 @@ OneToThreeColumns = ['Q3a', 'Q3b', 'Q3c',
              'Q3i', 'Q3j']
 
 df[OneToThreeColumns] = df[OneToThreeColumns].applymap(lambda x: np.where(x in range(1,4) , x, None))
+del OneToThreeColumns
 #It appears that python's range function doesn't include the stop= number
 
 
@@ -87,7 +88,7 @@ OneToFiveColumns = ["Q1", "Q2", "Q4a", "Q4b", "Q4c", "Q4d",
                     "Q11d"]
 
 df[OneToFiveColumns] = df[OneToFiveColumns].applymap(lambda x: np.where(x in range(1,6) , x, None))
-
+del OneToFiveColumns
 
 #Question 7. is the only one that goes from 1-6, so commit to the same process as others,
 #only increasing the upper bound by 1 this time.
@@ -95,7 +96,7 @@ df[OneToFiveColumns] = df[OneToFiveColumns].applymap(lambda x: np.where(x in ran
 OneToSixColumns = ["Q7"]
 
 df[OneToSixColumns] = df[OneToSixColumns].applymap(lambda x: np.where(x in range(1,7) , x, None))
-
+del OneToSixColumns
 
 ##################################################################
 ###                     Raw Score Calculations                 ###
@@ -251,53 +252,45 @@ test = df[["Identifier", "Q7", "Q8", "Raw_BP"]]
     #If 3 or more missing, then GH = None
     #Definitely reached the most complex one of the 8 items
         #Good lord...
+
 def RAW_GH(item1, item11a, item11b, item11c, item11d):
-    Item1Dict = {None: np.nan, 1: 5, 2: 4.4, 3: 3.4, 4: 2, 5: 1}
+    Item1Dict = {np.nan: np.nan, 1: 5, 2: 4.4, 3: 3.4, 4: 2, 5: 1}
     if item1 in Item1Dict: #Recode
+        global a #Define "a" as a global variable
         a = Item1Dict[item1] #Go through and check dictionary
-    else:
-        a = None #If np.nan, then None
-    a = a
     b = item11a  # Don't change
     c = (np.abs(item11b - 5) + 1) #Recode
     d = item11c
     e = (np.abs(item11d - 5) + 1) #Recode
     List = pd.Series([a,b,c,d,e])
     Missing = List.isna().sum()
-    while Missing == 0: #All present
+    if Missing == 0: #All present
         return np.sum([a,b,c,d,e])
-    while Missing >= 3: #3 or more missing
-        return 0
-    while (Missing > 0 or Missing < 3):
-    b2 = np.nanmean([item9c, item9d, item9f, item9h])
-    c2 = np.nanmean([item9b, item9d, item9f, item9h])
-    d2 = np.nanmean([item9b, item9c, item9f, item9h])
-    f2 = np.nanmean([item9b, item9c, item9d, item9h])
-    h2 = np.nanmean([item9b, item9c, item9d, item9f])
+    elif Missing >= 3: #3 or more missing
+        return None
+    elif (Missing == 1 or Missing == 2):
+        a2 = np.nanmean([b, c, d, e])
+        b2 = np.nanmean([a, c, d, e])
+        c2 = np.nanmean([a, b, d, e])
+        d2 = np.nanmean([a, b, c, e])
+        e2 = np.nanmean([a, b, c, d])
+        return np.nansum([a2 + b2 + c2 + d2 + e2])
+    else:
+        return "Error"
 
-RAW_GH(2,2,4,3,4)
+#Testing:
+RAW_GH(2,1,5,3,2) #13.4
+RAW_GH(5,2,2,3,3) #13
+RAW_GH(2, np.nan, np.nan, np.nan, 2) #None
+RAW_GH(4,3,np.nan,3,5) #11.25
+RAW_GH(np.nan,1,3,3,1) #15
+#Looks like it works for all of the test cases!!!
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#Applying to the data set:
+df["Raw_GH"] = df.apply(lambda row: RAW_GH(row["Q1"], row["Q11a"], row["Q11b"],
+                                           row["Q11c"], row["Q11d"]), axis = 1)
+test = df[["Identifier", "Q1", "Q11a", "Q11b", "Q11c", "Q11d", "Raw_GH"]]
+#Nice
 
 
 "5. Raw Vitality (VT) Score"
@@ -455,3 +448,112 @@ RAW_MH(np.nan, 4,1,4,5) #17.5
 df["Raw_MH"] = df.apply(lambda row: RAW_MH(row["Q9b"], row["Q9c"], row["Q9d"],
                                            row["Q9f"], row["Q9h"]), axis = 1)
 test = df[["Identifier", "Q9b", "Q9c", "Q9d", "Q9f", "Q9h", "Raw_MH"]]
+
+
+
+
+
+
+##################################################################
+###                    Score Transformations                   ###
+##################################################################
+"""The next step involves transforming each raw scale score to a 0-100
+   scale using the formula shown below.
+   
+   Transformed_Scale = [(ActualRawScore - LowestPossibleRawScore)]
+                       ___________________________________________ * 100
+                       [Possible Raw Score Range                 ]
+   These scores represent a % of the total possible score received. 
+   Reference: pg. 43 (17 in online mode)
+    """
+#Not sure if I should treat the min. and range as variables in case someone wants to change them later
+
+df["Transformed_PF"] = ((df["Raw_PF"] - 10) / 20) * 100
+df["Transformed_RP"] = ((df["Raw_RP"] - 4) / 16) * 100
+df["Transformed_BP"] = ((df["Raw_BP"] - 2) / 10) * 100
+df["Transformed_GH"] = ((df["Raw_GH"] - 5) / 20) * 100
+df["Transformed_VT"] = ((df["Raw_VT"] - 4) / 16) * 100
+df["Transformed_SF"] = ((df["Raw_SF"] - 2) / 8) * 100
+df["Transformed_RE"] = ((df["Raw_RE"] - 3) / 12) * 100
+df["Transformed_MH"] = ((df["Raw_MH"] - 5) / 20) * 100
+
+#Testing:
+test = df[["Identifier", "Transformed_PF", "Transformed_RP", "Transformed_BP", "Transformed_GH",
+           "Transformed_VT", "Transformed_SF", "Transformed_RE", "Transformed_MH"]]
+
+
+#That was so easy compared to the preceding step, holy
+#Took like 10 minutes
+
+
+
+##################################################################
+###                    Standardized Scores                     ###
+##################################################################
+"""Based on the 1998 general U.S. population lol
+   The first step is computing a z-score for each of the scales.
+   Z = (x - mean) / std. dev.
+   Reference: pg. 44 (18 in online mode) and pg. 51 (25 in online mode)
+   """
+
+df["Standardized_PF"] = ((df["Transformed_PF"] - 83.29094) / 23.75883)
+df["Standardized_RP"] = ((df["Transformed_RP"] - 82.50964) / 25.52028)
+df["Standardized_BP"] = ((df["Transformed_BP"] - 71.32527) / 23.66224)
+df["Standardized_GH"] = ((df["Transformed_GH"] - 70.84570) / 20.97821)
+df["Standardized_VT"] = ((df["Transformed_VT"] - 58.31411) / 20.01923)
+df["Standardized_SF"] = ((df["Transformed_SF"] - 84.30250) / 22.91921)
+df["Standardized_RE"] = ((df["Transformed_RE"] - 87.39733) / 21.43778)
+df["Standardized_MH"] = ((df["Transformed_MH"] - 74.98685) / 17.75604)
+
+test = df[["Identifier", "Standardized_PF", "Standardized_RP", "Standardized_BP",
+           "Standardized_GH", "Standardized_VT", "Standardized_SF",
+           "Standardized_RE", "Standardized_MH"]]
+
+#Once again, 10 minutes maybe compared to the other section...
+
+
+##################################################################
+###                    Norm-Based Scores                       ###
+##################################################################
+"""Transforming each score to the norm-based (50, 10) scoring scale.
+   This is done by the following:
+   Norm-based PF = 50 + (PF_Z * 10)"""
+
+df["NormBased_PF"] = (50 + (df["Standardized_PF"] * 10))
+df["NormBased_RP"] = (50 + (df["Standardized_RP"] * 10))
+df["NormBased_BP"] = (50 + (df["Standardized_BP"] * 10))
+df["NormBased_GH"] = (50 + (df["Standardized_GH"] * 10))
+df["NormBased_VT"] = (50 + (df["Standardized_VT"] * 10))
+df["NormBased_SF"] = (50 + (df["Standardized_SF"] * 10))
+df["NormBased_RE"] = (50 + (df["Standardized_RE"] * 10))
+df["NormBased_MH"] = (50 + (df["Standardized_MH"] * 10))
+
+test = df[["Identifier", "NormBased_PF", "NormBased_RP", "NormBased_BP", "NormBased_GH",
+           "NormBased_VT", "NormBased_SF", "NormBased_RE", "NormBased_MH"]]
+
+##################################################################
+###                   Write Results to File                    ###
+##################################################################
+"""Welp, it's been quite a long journey (3 days) to complete this task.
+But we actually managed to do it so that's really cool"""
+
+df.shape
+
+Questions = data.iloc[:, 0:37]
+Answers = df.iloc[:, 38:69]
+
+FinalScoredData = pd.concat([Questions, Answers], axis = 1)
+FinalScoredData
+
+
+#Write the final file to .csv
+
+pd.DataFrame.to_csv(FinalScoredData, "C:/Users/MatthiasQ.MATTQ/Desktop/R Projects/FinalScoredData.csv",
+                    header = True, index = False)
+
+
+#And that's it.
+#What a project.
+
+
+
