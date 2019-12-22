@@ -4,7 +4,11 @@ Source 2: https://medium.com/better-programming/two-replacements-for-switch-stat
 Source 3: https://docs.scipy.org/doc/numpy/reference/generated/numpy.nan_to_num.html
 Source 4: https://docs.scipy.org/doc/numpy/reference/generated/numpy.nanmean.html
 Source 5: https://stackoverflow.com/questions/44033422/how-to-recode-integers-to-other-values-in-python
-Source 6: https://stackoverflow.com/questions/11904981/local-variable-referenced-before-assignment"""
+Source 6: https://stackoverflow.com/questions/11904981/local-variable-referenced-before-assignment
+
+
+If I was really good, I would have this all as one big function so that the user could choose which item she would like
+to be scored. But that's for future me to figure out."""
 #Set working directory where contents will be stored:
 import os
 os.chdir(path = "C:/Users/MatthiasQ.MATTQ/Desktop/R Projects")
@@ -539,8 +543,8 @@ But we actually managed to do it so that's really cool"""
 
 df.shape
 
-Questions = data.iloc[:, 0:37]
-Answers = df.iloc[:, 38:69]
+Questions = data.iloc[:, 0:37] #Select the original questions
+Answers = df.iloc[:, 38:69]    #Select the scored answers
 
 FinalScoredData = pd.concat([Questions, Answers], axis = 1)
 FinalScoredData
