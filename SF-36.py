@@ -1,11 +1,14 @@
 """This is for the SF-36 project in Dr. Quinn's consulting class
+Author: Matthias Quinn
+Date Began: Dec. 16, 2019
+Date End: Dec 21, 2019
 Source 1: https://stackoverflow.com/questions/16476924/how-to-iterate-over-rows-in-a-dataframe-in-pandas
 Source 2: https://medium.com/better-programming/two-replacements-for-switch-statements-in-python-85e09638e451
 Source 3: https://docs.scipy.org/doc/numpy/reference/generated/numpy.nan_to_num.html
 Source 4: https://docs.scipy.org/doc/numpy/reference/generated/numpy.nanmean.html
 Source 5: https://stackoverflow.com/questions/44033422/how-to-recode-integers-to-other-values-in-python
 Source 6: https://stackoverflow.com/questions/11904981/local-variable-referenced-before-assignment
-
+Source 7: https://stackoverflow.com/questions/60208/replacements-for-switch-statement-in-python?page=1&tab=votes#tab-top
 
 If I was really good, I would have this all as one big function so that the user could choose which item she would like
 to be scored. But that's for future me to figure out."""
@@ -18,7 +21,8 @@ os.listdir()
 import numpy as np
 import pandas as pd
 
-#Read in the sample dataset:
+#Read in the sample data set:
+#Or where you put your
 data = pd.read_excel("C:/Users/MatthiasQ.MATTQ/Desktop/R Projects/Practice SF-36 data.xlsx",
                      sheet_name = "Practice SF-36 data")
 data.head(3)
@@ -192,57 +196,35 @@ df["Raw_RP"].describe()
     #If both columns missing: then BP = None
     #Might have to use a "while" statement
     #Items are precalculated
+    #The first function I coded was like 42 lines of code, now it's 20!
 
 def RAW_BP(item7, item8):
-    while np.isnan(item7) and np.isnan(item8): # Both are missing
+    while np.isnan(item7) and np.isnan(item8):  # Both are missing
         return None
-    while item7 > 0 and np.isnan(item8): # Only 7 answered
+    while item7 > 0 and np.isnan(item8):  # Only 7 answered
         return None
-    while np.isnan(item7) and item8 > 0: # Only 8 answered
-        switcher = {                     # Using a switcher case statement here
+    while np.isnan(item7) and item8 > 0:  # Only 8 answered
+        switcher = {  # Using a switcher case statement here
             1: 12, 2: 9.5,
             3: 7, 4: 4.5, 5: 2}
         return switcher.get(item8, None)
-    while item7 > 0 and item8 > 0: # Both items answered
-        if item7 == 1 and item8 == 1: return 12
-        elif item7 == 1 and item8 == 2: return 10
-        elif item7 == 1 and item8 == 3: return 9
-        elif item7 == 1 and item8 == 4: return 8
-        elif item7 == 1 and item8 == 5: return 7
-        elif item7 == 2 and item8 == 1: return 10.4
-        elif item7 == 2 and item8 == 2: return 9.4
-        elif item7 == 2 and item8 == 3: return 8.4
-        elif item7 == 2 and item8 == 4: return 7.4
-        elif item7 == 2 and item8 == 5: return 6.4
-        elif item7 == 3 and item8 == 1: return 9.2
-        elif item7 == 3 and item8 == 2: return 8.2
-        elif item7 == 3 and item8 == 3: return 7.2
-        elif item7 == 3 and item8 == 4: return 6.2
-        elif item7 == 3 and item8 == 5: return 5.2
-        elif item7 == 4 and item8 == 1: return 8.1
-        elif item7 == 4 and item8 == 2: return 7.1
-        elif item7 == 4 and item8 == 3: return 6.1
-        elif item7 == 4 and item8 == 4: return 5.1
-        elif item7 == 4 and item8 == 5: return 4.1
-        elif item7 == 5 and item8 == 1: return 7.2
-        elif item7 == 5 and item8 == 2: return 6.2
-        elif item7 == 5 and item8 == 3: return 5.2
-        elif item7 == 5 and item8 == 4: return 4.2
-        elif item7 == 5 and item8 == 5: return 3.2
-        elif item7 == 6 and item8 == 1: return 6
-        elif item7 == 6 and item8 == 2: return 5
-        elif item7 == 6 and item8 == 3: return 4
-        elif item7 == 6 and item8 == 4: return 3
-        elif item7 == 6 and item8 == 5: return 2
-        else:
-            return None
+    while item7 > 0 and item8 > 0:  # Both items answered
+        return { #loops through dictionary checking for matches
+            (1,1): 12.0, (1, 2): 10.0, (1, 3): 9, (1,4): 8, (1,5): 7,
+            (2,1): 10.4, (2,2): 9.4, (2,3): 8.4, (2,4): 7.4, (2,5): 6.4,
+            (3,1): 9.2, (3,2): 8.2, (3,3): 7.2, (3,4): 6.2, (3,5): 5.2,
+            (4,1): 8.1, (4,2): 7.1, (4,3): 6.1, (4,4): 5.1, (4,5): 4.1,
+            (5,1): 7.2, (5,2): 6.2, (5,3): 5.2, (5,4): 4.2, (5,5): 3.2,
+            (6,1): 6.0, (6,2): 5.0, (6,3): 4.0, (6,4): 3.0, (6,5): 2.0}[(item7, item8)]
+    else:
+        return None
 
 #Testing Phase
 RAW_BP(np.nan, np.nan) #None
 RAW_BP(1, np.nan) #None
 RAW_BP(np.nan, 9) #None
 RAW_BP(np.nan, 2) #9.5
-RAW_BP(1, 5) #7
+RAW_BP(3,5) #7
 
 #Applying to the data set
 df["Raw_BP"] = df.apply(lambda row: RAW_BP(row["Q7"], row["Q8"]), axis = 1)
@@ -443,7 +425,7 @@ def RAW_MH(item9b, item9c, item9d, item9f, item9h):
 #Testing:
 RAW_MH(4,5,4,4,4) #Works when all items present
 RAW_MH(np.nan, np.nan, np.nan, 1, 3) #Works when missing >= 3
-RAW_MH(np.nan, np.nan, np.nan, np.nan, 3)
+RAW_MH(np.nan, np.nan, np.nan, np.nan, 3) #None
 RAW_MH(np.nan, np.nan, 5,2,5) #6.67
 RAW_MH(np.nan, 4,1,4,5) #17.5
 #Holy shit it works wtf
@@ -555,7 +537,7 @@ FinalScoredData
 pd.DataFrame.to_csv(FinalScoredData, "C:/Users/MatthiasQ.MATTQ/Desktop/R Projects/FinalScoredData.csv",
                     header = True, index = False)
 
-
+os.listdir() #Check to make sure it's saved there.
 #And that's it.
 #What a project.
 
