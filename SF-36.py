@@ -1,7 +1,9 @@
 """This is for the SF-36 project in Dr. Quinn's consulting class
 Author: Matthias Quinn
+Goal: Score the SF-36 item survey
 Date Began: Dec. 16, 2019
 Date End: Dec 21, 2019
+
 Source 1: https://stackoverflow.com/questions/16476924/how-to-iterate-over-rows-in-a-dataframe-in-pandas
 Source 2: https://medium.com/better-programming/two-replacements-for-switch-statements-in-python-85e09638e451
 Source 3: https://docs.scipy.org/doc/numpy/reference/generated/numpy.nan_to_num.html
@@ -11,10 +13,26 @@ Source 6: https://stackoverflow.com/questions/11904981/local-variable-referenced
 Source 7: https://stackoverflow.com/questions/60208/replacements-for-switch-statement-in-python?page=1&tab=votes#tab-top
 
 If I was really good, I would have this all as one big function so that the user could choose which item she would like
-to be scored. But that's for future me to figure out."""
-#Set working directory where contents will be stored:
+to be scored. But that's for future me to figure out.
+
+What I learned:
+    * While loops
+    * Multi-input functions
+    * How to apply multi-input functions across a data-set (using lambda)
+    * Lambda functions
+    * If-elif-else statements
+    * Multi-key dictionaries (using ())
+    * Importance of commenting your code"""
+
+
+##################################################################
+###                         Data Prerequisites:                ###
+##################################################################
+
+
+#Set working directory where contents will be stored and accessed:
 import os
-os.chdir(path = "C:/Users/MatthiasQ.MATTQ/Desktop/R Projects")
+os.chdir(path = "C:/Users/MatthiasQ.MATTQ/Desktop/SF-36")
 os.listdir()
 
 #Import the necessary libraries:
@@ -22,8 +40,8 @@ import numpy as np
 import pandas as pd
 
 #Read in the sample data set:
-#Or where you put your
-data = pd.read_excel("C:/Users/MatthiasQ.MATTQ/Desktop/R Projects/Practice SF-36 data.xlsx",
+
+data = pd.read_excel("Practice SF-36 data.xlsx",
                      sheet_name = "Practice SF-36 data")
 data.head(3)
 
@@ -33,30 +51,30 @@ data.head(3)
 
 #Set up variables to be worked with
 #You cannot include the calculated variables because they all have NaN at the moment
-columns = ['Q1', 'Q2', 'Q3a', 'Q3b', 'Q3c',
-           'Q3d', 'Q3e', 'Q3f', 'Q3g', 'Q3h',
-           'Q3i', 'Q3j', 'Q4a', 'Q4b', 'Q4c',
-           'Q4d', 'Q5a', 'Q5b', 'Q5c', 'Q6',
-           'Q7', 'Q8', 'Q9a', 'Q9b', 'Q9c',
-           'Q9d', 'Q9e', 'Q9f', 'Q9g', 'Q9h',
-           'Q9i', 'Q10', 'Q11a', 'Q11b', 'Q11c', 'Q11d']
+Questions = ['Q1', 'Q2', 'Q3a', 'Q3b', 'Q3c',
+             'Q3d', 'Q3e', 'Q3f', 'Q3g', 'Q3h',
+             'Q3i', 'Q3j', 'Q4a', 'Q4b', 'Q4c',
+             'Q4d', 'Q5a', 'Q5b', 'Q5c', 'Q6',
+             'Q7', 'Q8', 'Q9a', 'Q9b', 'Q9c',
+             'Q9d', 'Q9e', 'Q9f', 'Q9g', 'Q9h',
+             'Q9i', 'Q10', 'Q11a', 'Q11b', 'Q11c', 'Q11d']
 
 data = data.astype({"Q1": "float64"}) #For later problems
-df = data.copy() #Don't just type "df = data" 'cause you'll have linked changes
+df = data.copy() #Don't just type "df = data" 'cause you'll have linked changes you make
 df.dtypes
 
 """Steps: 1. Change Decimals to NA"
-"       2. Change Negatives to NA /
-"       3. Change out-of-range values to NA"""
+"         2. Change Negatives to NA /
+"         3. Change out-of-range values to NA"""
 
 #1. Change entries with decimals to NA:
 
 #This took forever to figure out
-df[columns] = df[columns].applymap(lambda x: np.where(x.is_integer(), x, None))
+df[Questions] = df[Questions].applymap(lambda x: np.where(x.is_integer(), x, None))
 
 
 #2. Change Negatives to NA:
-df[columns] = df[columns].applymap(lambda x: np.where(x > 0, x, None))
+df[Questions] = df[Questions].applymap(lambda x: np.where(x > 0, x, None))
 
 
 #3. Change out-of-range values to NA:
@@ -124,24 +142,30 @@ del OneToSixColumns
 
 #Custom Function
 def RAW_PF(a,b,c,d,e,f,g,h,i,j):
-    list = pd.Series([a,b,c,d,e,f,g,h,i,j])
-    Mean = np.mean(list)
+    """A function to return the raw Physical-Functioning score
+    Inputs: Items 3a - 3j
+    Output: Phyiscal-functioning score"""
+    list = pd.Series([a,b,c,d,e,f,g,h,i,j]) #Create a list of the items
+    Mean = np.mean(list)                    #Calculate the mean of the items in the list
     Missing = list.isna().sum()
-    if Missing > 5:
+    if Missing > 5: #More than 5 items missing
         return None
-    elif Missing > 0 and Missing < 5:
+    elif Missing > 0 and Missing < 5: #Replace missing items with the mean of the other items
         list2 = list.replace(np.nan, Mean)
         return sum(list2)
-    else:
+    else:                             #If all items are present, return the simple sum to get the score
         return sum(list)
 
 #Testing the function
 RAW_PF(2,1,3,2,3,2,1,1,np.nan,3) #20
 RAW_PF(3,3,2,2,2,3,3,3,2,2) #25
 RAW_PF(np.nan,3,np.nan,3,np.nan,1,np.nan,2,np.nan,np.nan) #None
+RAW_PF(1,	3,	3,	1,	1,	2,	2,	1,	2,	2) #18
+RAW_PF(np.nan, 3,1,3,1,2,2,2,1,3) #20
+
 
 #So the function works on test data!
-#Now how do I apply it to my dataset specifically?
+#Now how do I apply it to my data set specifically?
 #It seems to work with individual inputs, but not a dataset of inputs?
 
 #Okay, what did we learn?
@@ -160,29 +184,31 @@ df["Raw_PF"].describe() #To check for the range
     #RP = sum(4a + 4b + 4c + 4d)
     #Ranges from [4 - 20]
     #Pretty sure it follows the same routine as RAW_PF
-def RAW_RP(a,b,c,d):
-    list = pd.Series([a,b,c,d])
+def RAW_RP(item4a, item4b, item4c, item4d):
+    """This function returns the raw role-physical score
+    Inputs: Items 4a - 4d"""
+    list = pd.Series([item4a, item4b, item4c, item4d])
     Mean = np.mean(list)
     Missing = list.isna().sum()
-    if Missing > 2:
+    if Missing > 2: #If more than half items are missing
         return None
-    elif Missing > 0 and Missing < 2:
+    elif Missing > 0 and Missing < 2: #Replace missing items with mean of others
         list2 = list.replace(np.nan, Mean)
         return sum(list2)
-    else:
+    else:           #All items present, then simple sum
         return sum(list)
+
 
 #Testing:
 RAW_RP(5,2,1,1) #9
 RAW_RP(np.nan, 1,2,5) #10.67
-#It works in pre-testing
 
-#Applying to the dataset
+
+#Applying to the data set:
 df["Raw_RP"] = df.apply(lambda row: RAW_RP(row["Q4a"], row["Q4b"],
                                            row["Q4c"], row["Q4d"]), axis = 1)
 df["Raw_RP"].describe()
 #Success
-
 #Once you get the first one, the rest become easy
 
 "3. Raw Bodily Pain (BP) Score"
@@ -192,24 +218,27 @@ df["Raw_RP"].describe()
         #If both items 7/8 are 1, then BP = 12
         #If item8 = 1 and item7 > 1, then BP = sum(5+item7)
         #If item8 = 2 and item7 > 1, then BP = sum(4 +
-    #If only 7 is there: then BP = None
+    #If only 7 is there: then BP = 2 * item7-recoded
     #If both columns missing: then BP = None
     #Might have to use a "while" statement
-    #Items are precalculated
+    #Items are pre-calculated
     #The first function I coded was like 42 lines of code, now it's 20!
 
 def RAW_BP(item7, item8):
+    """A function to return the raw bodily-pain score
+    Inputs: Items 7 and 8
+    Output: Raw Bodily-Pain score"""
     while np.isnan(item7) and np.isnan(item8):  # Both are missing
         return None
-    while item7 > 0 and np.isnan(item8):  # Only 7 answered
-        return None
+    while item7 > 0 and np.isnan(item8):  # Only 7 answered and not 8
+        switcher = {1: 12, 2: 10.8, 3: 8.4, 4: 6.2, 5: 4.4, 6: 2}
+        return switcher.get(item7, None)
     while np.isnan(item7) and item8 > 0:  # Only 8 answered
         switcher = {  # Using a switcher case statement here
-            1: 12, 2: 9.5,
-            3: 7, 4: 4.5, 5: 2}
+            1: 12, 2: 9.5, 3: 7, 4: 4.5, 5: 2}
         return switcher.get(item8, None)
     while item7 > 0 and item8 > 0:  # Both items answered
-        return { #loops through dictionary checking for matches
+        return { #loops through multi-key dictionary checking for matches
             (1,1): 12.0, (1, 2): 10.0, (1, 3): 9, (1,4): 8, (1,5): 7,
             (2,1): 10.4, (2,2): 9.4, (2,3): 8.4, (2,4): 7.4, (2,5): 6.4,
             (3,1): 9.2, (3,2): 8.2, (3,3): 7.2, (3,4): 6.2, (3,5): 5.2,
@@ -221,7 +250,7 @@ def RAW_BP(item7, item8):
 
 #Testing Phase
 RAW_BP(np.nan, np.nan) #None
-RAW_BP(1, np.nan) #None
+RAW_BP(4, np.nan) #6.2
 RAW_BP(np.nan, 9) #None
 RAW_BP(np.nan, 2) #9.5
 RAW_BP(3,5) #7
@@ -240,9 +269,12 @@ test = df[["Identifier", "Q7", "Q8", "Raw_BP"]]
         #Good lord...
 
 def RAW_GH(item1, item11a, item11b, item11c, item11d):
+    """A function to return the raw General Health score
+    Inputs: Items 1, 11a - 11d
+    Output: Raw General Health score"""
     Item1Dict = {np.nan: np.nan, 1: 5, 2: 4.4, 3: 3.4, 4: 2, 5: 1}
     if item1 in Item1Dict: #Recode
-        global a #Define "a" as a global variable
+        global a #Define "a" as a global variable (no idea what that means btw)
         a = Item1Dict[item1] #Go through and check dictionary
     b = item11a  # Don't change
     c = (np.abs(item11b - 5) + 1) #Recode
@@ -286,6 +318,9 @@ test = df[["Identifier", "Q1", "Q11a", "Q11b", "Q11c", "Q11d", "Raw_GH"]]
     #This one was tough to figure out
 
 def RAW_VT(item9a, item9e, item9g, item9i):
+    """A function to return the raw Vitality score
+    Inputs: Items 9a, 9e, 9g, and 9i
+    Output: Raw Vitality score"""
     item9a = np.abs(item9a - 5) + 1 #Recode before computation
     item9e = np.abs(item9e - 5) + 1
     item9g = item9g #Keep same
@@ -294,27 +329,31 @@ def RAW_VT(item9a, item9e, item9g, item9i):
     Missing = List.isna().sum()
     if Missing >= 3: #3 or more are missing
         return None
-    elif Missing == 0: #Nonemissing
+    elif Missing == 0: #None missing
         return (item9a + item9e + item9g + item9i)
     elif (Missing == 1): #Only 1 item missing
-       a3 = np.nanmean([item9e, item9e, item9i])
+       a3 = np.nanmean([item9e, item9g, item9i])
        b3 = np.nanmean([item9a, item9g, item9i])
        c3 = np.nanmean([item9a, item9e, item9i])
        d3 = np.nanmean([item9a, item9e, item9g])
-       return (a3+b3+c3+d3)
+       return (a3 + b3 + c3 + d3)
     elif (Missing == 2): #Just 2 missing
-        return (2 * (item9g+item9i)) #Yes, this is cheating a bit
+        return (2 * (item9g + item9i)) #Yes, this is cheating a bit
     else:
         return None
 
 #Testing:
-RAW_VT(5,5,1,2) #It works if all are there
+RAW_VT(3,2,1,3) #It works if all are there
 RAW_VT(np.nan, np.nan, np.nan, 6) #It works if 3 or more aren't there
 RAW_VT(np.nan, np.nan, 3,1) #8
+RAW_VT(np.nan, 3, 4, 2) #12
+RAW_VT(np.nan, 2,3,5)   #16
+RAW_VT(2, np.nan, 1,2) #9.33
 
 #Applying to the data set:
 df["Raw_VT"] = df.apply(lambda row: RAW_VT(row["Q9a"], row["Q9e"],
                                            row["Q9g"], row["Q9i"]), axis = 1)
+
 test = df[["Identifier", "Q9a", "Q9e", "Q9g", "Q9i", "Raw_VT"]]
 
 #Success
@@ -333,13 +372,16 @@ test = df[["Identifier", "Q9a", "Q9e", "Q9g", "Q9i", "Raw_VT"]]
     #If both are there, then the score is (abs(Item6-5)+1) + item10
 
 def RAW_SF(item6, item10):
+    """Function to return the raw Social-Functioning score
+    Inputs: Items 6 and 10
+    Output: Raw Social-Functioning score"""
     while np.isnan(item6) and np.isnan(item10): #Both missing
         return None
     while np.isnan(item6) and item10 > 0: #Just 6 missing
         return (2 * item10)
     while item6 > 0 and np.isnan(item10): #Just 10 missing
         return (2 * ((np.abs(item6 -5))+1))
-    while item6 > 0 and item10 > 0:
+    while item6 > 0 and item10 > 0: #Both items present
         return ((np.abs(item6 - 5)) + item10 + 1)
     else:
         return None
@@ -366,6 +408,9 @@ test = df[["Identifier", "Q6", "Q10", "Raw_SF"]]
     #If one missing, replace with average of other two, then RE = simple sum of items
 
 def RAW_RE(item5a, item5b, item5c):
+    """Function that returns that raw Role-Emotional score
+    Inputs: Items 5a-5c
+    Output: Raw Role-Emotional score"""
     List = pd.Series([item5a, item5b, item5c])
     Missing = np.isnan(List).sum()
     Mean = np.mean(List)
@@ -401,6 +446,9 @@ test = df[["Identifier", "Q5a", "Q5b", "Q5c", "Raw_RE"]]
     #Range = [5 - 25]
 
 def RAW_MH(item9b, item9c, item9d, item9f, item9h):
+    """A function that returns the raw mental health score
+    Inputs: Items 9b, 9c, 9d, 9f, and 9h
+    Output: Raw Mental Health score"""
     item9b = item9b #Keep same
     item9c = item9c
     item9d = (np.abs(item9d - 5) + 1) #Recode
@@ -452,7 +500,7 @@ test = df[["Identifier", "Q9b", "Q9c", "Q9d", "Q9f", "Q9h", "Raw_MH"]]
    These scores represent a % of the total possible score received. 
    Reference: pg. 43 (17 in online mode)
     """
-#Not sure if I should treat the min. and range as variables in case someone wants to change them later
+#Not sure if I should treat the minimum and range as variables in case someone wants to change them later
 
 df["Transformed_PF"] = ((df["Raw_PF"] - 10) / 20) * 100
 df["Transformed_RP"] = ((df["Raw_RP"] - 4) / 16) * 100
@@ -526,15 +574,16 @@ But we actually managed to do it so that's really cool"""
 df.shape
 
 Questions = data.iloc[:, 0:37] #Select the original questions
-Answers = df.iloc[:, 38:69]    #Select the scored answers
+Answers = df.iloc[:, 37:69]    #Select the scored answers
 
 FinalScoredData = pd.concat([Questions, Answers], axis = 1)
+FinalScoredData = np.round(FinalScoredData, decimals = 2) #Round everything to 2 decimal places
 FinalScoredData
 
 
-#Write the final file to .csv
+#Write the final file to .csv:
 
-pd.DataFrame.to_csv(FinalScoredData, "C:/Users/MatthiasQ.MATTQ/Desktop/R Projects/FinalScoredData.csv",
+pd.DataFrame.to_csv(FinalScoredData, "FinalScoredData.csv",
                     header = True, index = False)
 
 os.listdir() #Check to make sure it's saved there.
